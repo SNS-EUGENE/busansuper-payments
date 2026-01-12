@@ -5,6 +5,10 @@
 ![Node.js](https://img.shields.io/badge/Node.js-v20+-339933?logo=node.js&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
+
+<img width="1883" height="860" alt="부산슈퍼 정산 1" src="https://github.com/user-attachments/assets/dce8726d-fbf0-48ab-ba43-574196e733a3" /><img width="1883" height="860" alt="부산슈퍼 정산 2" src="https://github.com/user-attachments/assets/0d8fa730-e0ac-40a5-a06a-c0bfeca86ed9" />
+
+
 ## 주요 기능
 
 ### 데이터 분석
