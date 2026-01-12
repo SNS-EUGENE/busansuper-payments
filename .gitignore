@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Debug files
+debug_*.js
+check_*.js
+verify_*.js
+analyze_*.js
+deep_debug.js
+detailed_report.js
+final_analysis.js
+find_*.js
+recheck_rows.js
+remaining_analysis.js
+test_*.js
+
+# Data files (민감 정보 포함)
+*.xlsx
+*.csv
+*.zip
+*.json
+
+# Misc
+nul
+.claude/
+
+# Keep these files
+!package.json
+!package-lock.json

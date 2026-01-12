@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부산슈퍼 정산 대시보드</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #242424;
+            --bg-hover: #2a2a2a;
+            --border: #333;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666;
+            --accent-blue: #4a9eff;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
+            --accent-purple: #a78bfa;
+            --accent-yellow: #fbbf24;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 32px;
+            min-height: 100vh;
+            line-height: 1.6;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            font-family: inherit;
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        /* 통계 그리드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-card .unit {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-left: 4px;
+        }
+
+        .stat-card.green .value { color: var(--accent-green); }
+        .stat-card.red .value { color: var(--accent-red); }
+        .stat-card.blue .value { color: var(--accent-blue); }
+
+        /* 섹션 카드 */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .section-body {
+            padding: 24px;
+        }
+
+        /* 요약 그리드 */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-item .label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .summary-item .value {
+            font-size: 18px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .summary-item .value.green { color: var(--accent-green); }
+        .summary-item .value.red { color: var(--accent-red); }
+
+        /* 컨트롤 */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        select {
+            font-family: inherit;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        input[type="date"] {
+            font-family: inherit;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .date-filter label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.card { background: var(--accent-blue); }
+        .legend-dot.cash { background: var(--accent-green); }
+
+        /* 테이블 공통 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        th {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg-tertiary);
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            font-size: 13px;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-hover);
+        }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .mono {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.3px;
+        }
+
+        .num {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* 아코디언 */
+        .accordion {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            display: grid;
+            grid-template-columns: 40px 1fr 180px 32px;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .accordion-header:hover {
+            background: var(--bg-hover);
+        }
+
+        .accordion-header.active {
+            background: var(--bg-hover);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .accordion-rank {
+            width: 36px;
+            height: 36px;
+            background: var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .accordion-rank.top { background: var(--accent-blue); }
+
+        .accordion-info {
+            min-width: 0;
+        }
+
+        .accordion-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .accordion-meta {
+            display: flex;
+            gap: 24px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .accordion-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .progress-wrap {
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: var(--accent-blue);
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .accordion-amount {
+            text-align: right;
+        }
+
+        .accordion-amount .main {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .accordion-amount .sub {
+            font-size: 12px;
+            color: var(--accent-red);
+            margin-top: 2px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .accordion-toggle {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+
+        .accordion-header.active .accordion-toggle {
+            transform: rotate(180deg);
+        }
+
+        .accordion-body {
+            display: none;
+            background: var(--bg-primary);
+        }
+
+        .accordion-body.show {
+            display: block;
+        }
+
+        .detail-table-wrap {
+            max-height: 500px;
+            overflow: auto;
+        }
+
+        .detail-table {
+            font-size: 12px;
+        }
+
+        .detail-table th {
+            font-size: 10px;
+            padding: 10px 12px;
+        }
+
+        .detail-table td {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+
+        /* 툴팁 스타일 */
+        [title] {
+            cursor: help;
+        }
+        .tooltip-value {
+            cursor: help;
+            border-bottom: 1px dotted var(--text-muted);
+        }
+
+        /* 뱃지 */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-card { background: rgba(74, 158, 255, 0.15); color: var(--accent-blue); }
+        .badge-cash { background: rgba(74, 222, 128, 0.15); color: var(--accent-green); }
+        .badge-service { background: rgba(167, 139, 250, 0.15); color: var(--accent-purple); }
+        .badge-coupon { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+        .badge-discount { background: rgba(251, 191, 36, 0.15); color: var(--accent-yellow); }
+        .badge-none { background: var(--bg-tertiary); color: var(--text-muted); }
+
+        /* 카드사별 태그 */
+        .badge-card-company {
+            display: inline-block;
+            width: 42px;
+            text-align: center;
+            padding: 4px 0;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-현대카드 { background: #000; color: #FFF; }
+        .badge-롯데카드 { background: #e21c24; color: #FFF; }
+        .badge-하나카드 { background: #009178; color: #FFF; }
+        .badge-우리카드 { background: #0067AC; color: #FFF; }
+        .badge-KB카드, .badge-국민카드 { background: #60584C; color: #ffb400; }
+        .badge-신한카드 { background: #0046ff; color: #FFF; }
+        .badge-삼성카드 { background: #003CDC; color: #FFF; }
+        .badge-농협카드 { background: #005CA9; color: #FFF; }
+        .badge-BC카드 { background: #E83E44; color: #FFF; }
+
+        /* 10선협의회 태그 */
+        .badge-10sun {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #FFF;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        /* 체크박스 필터 */
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .filter-checkbox input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: #764ba2;
+            cursor: pointer;
+        }
+
+        /* 유틸리티 */
+        .green { color: var(--accent-green); }
+        .red { color: var(--accent-red); }
+        .blue { color: var(--accent-blue); }
+        .muted { color: var(--text-muted); }
+
+        #loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+        }
+
+        .error-msg {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        /* 모달 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .modal-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        .modal-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .modal-option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .modal-option:hover {
+            border-color: var(--accent-blue);
+            background: var(--bg-hover);
+        }
+        .modal-option-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .modal-option-icon.txt { background: rgba(74, 158, 255, 0.15); }
+        .modal-option-icon.excel { background: rgba(74, 222, 128, 0.15); }
+        .modal-option-info {
+            flex: 1;
+        }
+        .modal-option-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .modal-option-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .modal-close {
+            margin-top: 16px;
+            text-align: center;
+        }
+        .modal-close button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+        .modal-close button:hover {
+            color: var(--text-primary);
+        }
+
+        /* 반응형 */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .summary-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .accordion-header { grid-template-columns: 36px 1fr 32px; }
+            .accordion-amount { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>부산슈퍼 정산 대시보드</h1>
+            <div class="header-actions">
+                <button class="btn" onclick="loadData()">분석 실행</button>
+                <button class="btn btn-secondary" onclick="exportReport()">리포트 다운로드</button>
+            </div>
+        </header>
+
+        <div id="loading" style="display:none;">데이터를 분석하고 있습니다...</div>
+
+        <div class="stats-grid" id="stats" style="display:none;">
+            <div class="stat-card">
+                <div class="label">매입내역</div>
+                <div class="value"><span id="stat-매입">-</span><span class="unit">건</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="label">포스 결제</div>
+                <div class="value"><span id="stat-포스">-</span><span class="unit">건</span></div>
+            </div>
+            <div class="stat-card green">
+                <div class="label">매칭 성공</div>
+                <div class="value"><span id="stat-매칭">-</span><span class="unit">건</span></div>
+            </div>
+            <div class="stat-card red">
+                <div class="label">총 수수료</div>
+                <div class="value"><span id="stat-수수료">-</span><span class="unit">원</span></div>
+            </div>
+        </div>
+
+        <div class="section" id="fee-analysis" style="display:none;">
+            <div class="section-header">
+                <div class="section-title">카드사별 수수료 현황</div>
+            </div>
+            <div class="section-body" style="padding: 0;">
+                <table id="fee-table">
+                    <thead>
+                        <tr>
+                            <th>카드사</th>
+                            <th class="text-right">건수</th>
+                            <th class="text-right">총 매입금액</th>
+                            <th class="text-right">총 수수료</th>
+                            <th class="text-center">평균 수수료율</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="supplier-settlement" style="display:none;">
+            <div class="section-header">
+                <div class="section-title">거래처별 정산 현황</div>
+            </div>
+            <div class="section-body">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="label">총 거래처</div>
+                        <div class="value" id="summary-suppliers">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="label">총 매출</div>
+                        <div class="value" id="summary-sales">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="label">총 할인</div>
+                        <div class="value red" id="summary-discount">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="label">카드 수수료</div>
+                        <div class="value red" id="summary-fee">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="label">정산 예정</div>
+                        <div class="value green" id="summary-settlement">-</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <select id="settlement-sort" onchange="sortSettlement()">
+                        <option value="settlement">정산액순</option>
+                        <option value="sales">매출액순</option>
+                        <option value="items">품목수순</option>
+                        <option value="fee">수수료순</option>
+                    </select>
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-dot card"></div>카드결제</div>
+                        <div class="legend-item"><div class="legend-dot cash"></div>비카드결제</div>
+                    </div>
+                    <div class="date-filter">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" id="filter-10sun" onchange="toggle10SunFilter()">
+                            <span>10선협의회</span>
+                        </label>
+                        <span style="color:var(--border);">|</span>
+                        <label>기간</label>
+                        <input type="date" id="date-start" onchange="filterByDate()">
+                        <span style="color:var(--text-muted);">~</span>
+                        <input type="date" id="date-end" onchange="filterByDate()">
+                        <button class="btn btn-secondary" onclick="resetDateFilter()" style="padding:8px 12px;">초기화</button>
+                    </div>
+                </div>
+
+                <div id="settlement-list"></div>
+            </div>
+        </div>
+
+        <div class="section" id="mismatch-analysis" style="display:none;">
+            <div class="section-header">
+                <div class="section-title">매칭 검증 결과</div>
+                <div style="font-size: 13px; color: var(--text-secondary);">
+                    상쇄 <span class="green" id="offset-count">0</span>쌍 ·
+                    포스 미매칭 <span class="red" id="pos-only-count">0</span>건 ·
+                    매입 미매칭 <span class="red" id="maip-only-count">0</span>건
+                </div>
+            </div>
+            <div class="section-body" style="padding: 0;" id="mismatch-tables"></div>
+        </div>
+    </div>
+
+    <!-- 리포트 다운로드 모달 -->
+    <div class="modal-overlay" id="export-modal" onclick="closeExportModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-title">리포트 다운로드</div>
+            <div class="modal-desc">현재 필터가 적용된 데이터를 다운로드합니다.</div>
+            <div class="modal-checkbox" style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px;">
+                    <input type="checkbox" id="fee-uniform-check" style="width: 18px; height: 18px; cursor: pointer;">
+                    <span>수수료 3.5% 일괄 적용 (카드/현금 구분 없이)</span>
+                </label>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; margin-left: 28px;">
+                    체크 시 모든 품목에 3.5% 수수료를 적용하여 계산합니다
+                </div>
+            </div>
+            <div class="modal-options">
+                <div class="modal-option" onclick="exportText()">
+                    <div class="modal-option-icon txt">📄</div>
+                    <div class="modal-option-info">
+                        <div class="modal-option-title">텍스트 파일 (.txt)</div>
+                        <div class="modal-option-desc">간단한 요약 리포트</div>
+                    </div>
+                </div>
+                <div class="modal-option" onclick="exportExcel()">
+                    <div class="modal-option-icon excel">📊</div>
+                    <div class="modal-option-info">
+                        <div class="modal-option-title">엑셀 파일 (.xlsx)</div>
+                        <div class="modal-option-desc">업체별 상세 내역 (시트 분리)</div>
+                    </div>
+                </div>
+                <div class="modal-option" onclick="exportExcelSettlement()">
+                    <div class="modal-option-icon excel" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">📋</div>
+                    <div class="modal-option-info">
+                        <div class="modal-option-title">정산용 엑셀 (.xlsx)</div>
+                        <div class="modal-option-desc">3.5% 수수료 일괄 적용, 간결한 형식</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-close">
+                <button onclick="closeExportModal()">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script>
+        let analysisData = null;
+        let settlementData = [];
+        let originalSettlementData = [];
+        let dateStart = '';
+        let dateEnd = '';
+        let filter10Sun = false;
+
+        // 부산관광기념품10선협의회 소속 업체 목록
+        const 협의회업체목록 = new Set([
+            '한국바이오뷰티', '끄레망', '노쉬프로젝트', '테이스티키친', '만들꿈',
+            '부산고등어빵', '보아스', '디자인플러스마인드', '온도담', '이솔공방',
+            '고미랑', '스토리진', '부산주당', '카페385', '핸드메이드썸',
+            '넓은뿌리공작소', '솔트컴바인', '씨드', '쿠도', '콘텐츠코어',
+            '디자인부산', '모이다', '미니바다', '착한세상', '모다라',
+            '대한공예', '코스마일'
+        ]);
+        const 협의회캐시 = new Map();
+
+        function is10SunMember(거래처명) {
+            if (협의회캐시.has(거래처명)) return 협의회캐시.get(거래처명);
+            const result = 협의회업체목록.has(거래처명) ||
+                [...협의회업체목록].some(name => 거래처명.includes(name) || name.includes(거래처명));
+            협의회캐시.set(거래처명, result);
+            return result;
+        }
+
+        function formatNumber(n) {
+            return (n || 0).toLocaleString();
+        }
+
+        function formatMoney(n) {
+            if (n >= 10000) return (n / 10000).toFixed(1) + '만';
+            return formatNumber(n);
+        }
+
+        function formatMoneyWithTooltip(n, suffix = '원') {
+            const exact = formatNumber(n) + suffix;
+            if (n >= 10000) {
+                const short = (n / 10000).toFixed(1) + '만' + suffix;
+                return `<span class="tooltip-value" title="${exact}">${short}</span>`;
+            }
+            return `<span>${exact}</span>`;
+        }
+
+        function excelDateToString(serial) {
+            if (!serial || isNaN(serial)) return '-';
+            const date = new Date((serial - 25569) * 86400000);
+            return date.toISOString().split('T')[0];
+        }
+
+        async function loadData() {
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                const response = await fetch('/api/analyze');
+                if (!response.ok) throw new Error('서버 응답 오류: ' + response.status);
+                analysisData = await response.json();
+                renderDashboard();
+            } catch (error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-msg';
+                errorDiv.textContent = '데이터 로드 실패: ' + error.message;
+                document.querySelector('.container').appendChild(errorDiv);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function renderDashboard() {
+            if (!analysisData) return;
+
+            document.getElementById('stats').style.display = 'grid';
+            document.getElementById('stat-매입').textContent = formatNumber(analysisData.요약.매입내역건수);
+            document.getElementById('stat-포스').textContent = formatNumber(analysisData.요약.포스결제건수);
+            document.getElementById('stat-매칭').textContent = formatNumber(analysisData.매칭결과?.매칭된항목 || 0);
+
+            let 총수수료 = 0;
+            if (analysisData.수수료통계) {
+                Object.values(analysisData.수수료통계).forEach(s => 총수수료 += s.총수수료 || 0);
+            }
+            document.getElementById('stat-수수료').textContent = formatNumber(총수수료);
+
+            if (analysisData.수수료통계) renderFeeTable();
+            if (analysisData.거래처정산) renderSettlement();
+            renderMismatch();
+        }
+
+        function renderFeeTable() {
+            document.getElementById('fee-analysis').style.display = 'block';
+            const tbody = document.getElementById('fee-table').querySelector('tbody');
+            tbody.innerHTML = '';
+
+            Object.entries(analysisData.수수료통계)
+                .sort((a, b) => b[1].총수수료 - a[1].총수수료)
+                .forEach(([카드사, s]) => {
+                    const 수수료율 = (s.총수수료 / s.총매입금액 * 100).toFixed(2);
+                    const 카드사뱃지 = getCardCompanyBadge(카드사);
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${카드사뱃지}</td>
+                            <td class="text-right mono">${formatNumber(s.건수)}</td>
+                            <td class="text-right mono">${formatNumber(s.총매입금액)}</td>
+                            <td class="text-right mono red">${formatNumber(s.총수수료)}</td>
+                            <td class="text-center"><span class="blue" style="font-weight:600;">${수수료율}%</span></td>
+                        </tr>
+                    `;
+                });
+        }
+
+        function renderSettlement() {
+            document.getElementById('supplier-settlement').style.display = 'block';
+            originalSettlementData = Object.values(analysisData.거래처정산);
+
+            // 10선협의회 여부 미리 캐시
+            originalSettlementData.forEach(s => {
+                s._is10Sun = is10SunMember(s.거래처);
+            });
+
+            settlementData = originalSettlementData;
+
+            // 날짜 범위 자동 설정
+            let minDate = null, maxDate = null;
+            originalSettlementData.forEach(s => {
+                (s.품목별상세 || []).forEach(item => {
+                    if (item.결제일자) {
+                        if (!minDate || item.결제일자 < minDate) minDate = item.결제일자;
+                        if (!maxDate || item.결제일자 > maxDate) maxDate = item.결제일자;
+                    }
+                });
+            });
+            if (minDate) document.getElementById('date-start').value = minDate;
+            if (maxDate) document.getElementById('date-end').value = maxDate;
+
+            updateSettlementSummary();
+            sortSettlement();
+        }
+
+        function updateSettlementSummary() {
+            let 총매출 = 0, 총할인 = 0, 총수수료 = 0, 총정산 = 0;
+            settlementData.forEach(s => {
+                총매출 += s.총매출 || 0;
+                총할인 += s.총할인 || 0;
+                총수수료 += s.카드수수료합계 || 0;
+                총정산 += s.정산예정액 || 0;
+            });
+
+            document.getElementById('summary-suppliers').textContent = settlementData.length + '개';
+            document.getElementById('summary-sales').innerHTML = formatMoneyWithTooltip(총매출);
+            document.getElementById('summary-discount').innerHTML = '-' + formatMoneyWithTooltip(총할인);
+            document.getElementById('summary-fee').innerHTML = '-' + formatMoneyWithTooltip(총수수료);
+            document.getElementById('summary-settlement').innerHTML = formatMoneyWithTooltip(총정산);
+        }
+
+        function filterByDate() {
+            dateStart = document.getElementById('date-start').value;
+            dateEnd = document.getElementById('date-end').value;
+            applyFilters();
+        }
+
+        function resetDateFilter() {
+            document.getElementById('date-start').value = '';
+            document.getElementById('date-end').value = '';
+            dateStart = '';
+            dateEnd = '';
+            applyFilters();
+        }
+
+        function toggle10SunFilter() {
+            filter10Sun = document.getElementById('filter-10sun').checked;
+            applyFilters();
+        }
+
+        function applyFilters() {
+            // 원본 데이터에서 시작
+            let filtered = originalSettlementData;
+
+            // 10선협의회 필터 적용 (캐시된 값 사용)
+            if (filter10Sun) {
+                filtered = filtered.filter(s => s._is10Sun);
+            }
+
+            // 날짜 필터 적용
+            if (dateStart || dateEnd) {
+                filtered = filtered.map(s => {
+                    const filteredItems = (s.품목별상세 || []).filter(item => {
+                        const d = item.결제일자;
+                        if (!d) return false;
+                        if (dateStart && d < dateStart) return false;
+                        if (dateEnd && d > dateEnd) return false;
+                        return true;
+                    });
+
+                    if (filteredItems.length === 0) return null;
+
+                    // 필터된 품목으로 통계 재계산
+                    let 총매출 = 0, 총할인 = 0, 실매출 = 0, 카드매출 = 0, 비카드매출 = 0;
+                    let 카드수수료합계 = 0, 정산예정액 = 0, 카드품목수 = 0, 비카드품목수 = 0;
+
+                    filteredItems.forEach(item => {
+                        총매출 += item.총매출액 || 0;
+                        총할인 += item.할인액 || 0;
+                        실매출 += (item.총매출액 || 0) - (item.할인액 || 0);
+                        카드수수료합계 += item.카드수수료 || 0;
+                        정산예정액 += item.정산액 || 0;
+
+                        if (item.카드여부) {
+                            카드매출 += (item.총매출액 || 0) - (item.할인액 || 0);
+                            카드품목수++;
+                        } else {
+                            비카드매출 += (item.총매출액 || 0) - (item.할인액 || 0);
+                            비카드품목수++;
+                        }
+                    });
+
+                    return {
+                        ...s,
+                        총매출,
+                        총할인,
+                        실매출,
+                        카드매출,
+                        비카드매출,
+                        카드수수료합계,
+                        정산예정액,
+                        품목수: filteredItems.length,
+                        카드품목수,
+                        비카드품목수,
+                        품목별상세: filteredItems
+                    };
+                }).filter(s => s !== null);
+            }
+
+            settlementData = filtered;
+            updateSettlementSummary();
+            sortSettlement();
+        }
+
+        function sortSettlement() {
+            const sort = document.getElementById('settlement-sort').value;
+            const sorted = [...settlementData].sort((a, b) => {
+                switch (sort) {
+                    case 'sales': return (b.총매출 || 0) - (a.총매출 || 0);
+                    case 'items': return (b.품목수 || 0) - (a.품목수 || 0);
+                    case 'fee': return (b.카드수수료합계 || 0) - (a.카드수수료합계 || 0);
+                    default: return (b.정산예정액 || 0) - (a.정산예정액 || 0);
+                }
+            });
+            renderSettlementList(sorted);
+        }
+
+        // 현재 렌더된 데이터 저장 (지연 로딩용)
+        let currentListData = [];
+
+        function renderSettlementList(data) {
+            currentListData = data;
+            const container = document.getElementById('settlement-list');
+
+            // 배열로 모아서 한번에 렌더링 (성능 최적화)
+            const html = data.map((s, idx) => {
+                const 카드비율 = s.실매출 > 0 ? (s.카드매출 / s.실매출 * 100) : 0;
+                const id = 'acc-' + idx;
+                const tag10Sun = s._is10Sun ? '<span class="badge-10sun">10선협의회</span>' : '';
+
+                return `
+                    <div class="accordion">
+                        <div class="accordion-header" onclick="toggleAccordion('${id}', ${idx})">
+                            <div class="accordion-rank ${idx < 3 ? 'top' : ''}">${idx + 1}</div>
+                            <div class="accordion-info">
+                                <div class="accordion-title">${s.거래처}${tag10Sun}</div>
+                                <div class="accordion-meta">
+                                    <span>품목 <strong>${s.품목수}</strong>건</span>
+                                    <span>카드 <strong>${s.카드품목수}</strong></span>
+                                    <span>비카드 <strong>${s.비카드품목수}</strong></span>
+                                    <span>매출 <strong title="${formatNumber(s.총매출)}원">${formatMoney(s.총매출)}</strong>원</span>
+                                </div>
+                                <div class="progress-wrap">
+                                    <div class="progress-bar"><div class="fill" style="width:${카드비율.toFixed(1)}%"></div></div>
+                                    <div class="progress-label">
+                                        <span title="${formatNumber(s.카드매출)}원">카드 ${formatMoney(s.카드매출)}원 (${카드비율.toFixed(1)}%)</span>
+                                        <span title="${formatNumber(s.비카드매출)}원">비카드 ${formatMoney(s.비카드매출)}원</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-amount">
+                                <div class="main" title="${formatNumber(s.정산예정액)}원">${formatMoney(s.정산예정액)}원</div>
+                                <div class="sub" title="${formatNumber(s.카드수수료합계)}원">수수료 -${formatMoney(s.카드수수료합계)}원</div>
+                            </div>
+                            <div class="accordion-toggle">▼</div>
+                        </div>
+                        <div class="accordion-body" id="${id}" data-idx="${idx}"></div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderDetailTable(items) {
+            if (!items.length) return '<div style="padding:24px;text-align:center;color:var(--text-muted);">상세 내역이 없습니다.</div>';
+
+            // 컬럼 순서: 결제일자-정산일자-카드/현금-카드사-카드수수료율-상품명-상품코드-상품바코드-가격-판매가-할인여부-할인율-할인액-카드수수료-최종정산액
+            let rows = items.map(item => {
+                const 결제뱃지 = item.카드여부
+                    ? '<span class="badge badge-card">카드</span>'
+                    : '<span class="badge badge-cash">현금</span>';
+                const 할인뱃지 = item.할인여부
+                    ? '<span class="badge badge-discount">Y</span>'
+                    : '<span class="badge badge-none">N</span>';
+
+                const 카드사뱃지 = getCardCompanyBadge(item.카드사);
+
+                return `
+                    <tr>
+                        <td class="mono">${item.결제일자 || '-'}</td>
+                        <td class="mono">${item.정산일자 || '-'}</td>
+                        <td class="text-center">${결제뱃지}</td>
+                        <td>${카드사뱃지}</td>
+                        <td class="text-center mono ${item.카드수수료율 > 0 ? 'blue' : 'muted'}">${item.카드수수료율 > 0 ? item.카드수수료율 + '%' : '-'}</td>
+                        <td>${item.상품명 || '-'}</td>
+                        <td class="mono muted">${item.상품코드 || '-'}</td>
+                        <td class="mono muted">${item.상품바코드 || '-'}</td>
+                        <td class="text-right mono">${formatNumber(item.판매단가)}</td>
+                        <td class="text-right mono">${formatNumber(item.총매출액)}</td>
+                        <td class="text-center">${할인뱃지}</td>
+                        <td class="text-center mono ${item.할인율 > 0 ? 'red' : 'muted'}">${item.할인율 > 0 ? item.할인율 + '%' : '-'}</td>
+                        <td class="text-right mono ${item.할인액 > 0 ? 'red' : 'muted'}">${item.할인액 > 0 ? '-' + formatNumber(item.할인액) : '-'}</td>
+                        <td class="text-right mono ${item.카드수수료 > 0 ? 'red' : 'muted'}">${item.카드수수료 > 0 ? '-' + formatNumber(item.카드수수료) : '-'}</td>
+                        <td class="text-right mono"><strong class="green">${formatNumber(item.정산액)}</strong></td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div class="detail-table-wrap">
+                    <table class="detail-table">
+                        <thead>
+                            <tr>
+                                <th>결제일자</th>
+                                <th>정산일자</th>
+                                <th class="text-center">카드/현금</th>
+                                <th>카드사</th>
+                                <th class="text-center">수수료율</th>
+                                <th>상품명</th>
+                                <th>상품코드</th>
+                                <th>바코드</th>
+                                <th class="text-right">가격</th>
+                                <th class="text-right">판매가</th>
+                                <th class="text-center">할인</th>
+                                <th class="text-center">할인율</th>
+                                <th class="text-right">할인액</th>
+                                <th class="text-right">수수료</th>
+                                <th class="text-right">정산액</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function getDiscountBadge(type) {
+            if (!type) return '<span class="badge badge-none">일반</span>';
+            if (type.includes('서비스')) return '<span class="badge badge-service">서비스</span>';
+            if (type.includes('쿠폰')) return '<span class="badge badge-coupon">쿠폰</span>';
+            if (type.includes('50%')) return '<span class="badge badge-discount">50%</span>';
+            if (type.includes('20%')) return '<span class="badge badge-discount">20%</span>';
+            if (type.includes('할인')) return '<span class="badge badge-discount">할인</span>';
+            return '<span class="badge badge-none">일반</span>';
+        }
+
+        function getCardCompanyBadge(cardName) {
+            if (!cardName || cardName === '-') return '<span class="muted">-</span>';
+
+            // 카드사명 정규화
+            let badgeClass = 'badge-none';
+            let displayName = cardName;
+
+            if (cardName.includes('현대')) { badgeClass = 'badge-현대카드'; displayName = '현대'; }
+            else if (cardName.includes('롯데')) { badgeClass = 'badge-롯데카드'; displayName = '롯데'; }
+            else if (cardName.includes('하나')) { badgeClass = 'badge-하나카드'; displayName = '하나'; }
+            else if (cardName.includes('우리')) { badgeClass = 'badge-우리카드'; displayName = '우리'; }
+            else if (cardName.includes('KB') || cardName.includes('국민')) { badgeClass = 'badge-KB카드'; displayName = 'KB'; }
+            else if (cardName.includes('신한')) { badgeClass = 'badge-신한카드'; displayName = '신한'; }
+            else if (cardName.includes('삼성')) { badgeClass = 'badge-삼성카드'; displayName = '삼성'; }
+            else if (cardName.includes('농협')) { badgeClass = 'badge-농협카드'; displayName = '농협'; }
+            else if (cardName.includes('BC') || cardName.includes('비씨')) { badgeClass = 'badge-BC카드'; displayName = 'BC'; }
+
+            return `<span class="badge badge-card-company ${badgeClass}">${displayName}</span>`;
+        }
+
+        function toggleAccordion(id, idx) {
+            const body = document.getElementById(id);
+            const header = body.previousElementSibling;
+
+            // 지연 로딩: 처음 열 때만 상세 테이블 렌더링
+            if (!body.innerHTML && currentListData[idx]) {
+                body.innerHTML = renderDetailTable(currentListData[idx].품목별상세 || []);
+            }
+
+            body.classList.toggle('show');
+            header.classList.toggle('active');
+        }
+
+        function renderMismatch() {
+            document.getElementById('mismatch-analysis').style.display = 'block';
+
+            const offset = analysisData.매칭결과?.상쇄된거래 || [];
+            const posOnly = analysisData.매칭결과?.포스누락 || [];
+            const maipOnly = analysisData.매칭결과?.매입누락 || [];
+
+            document.getElementById('offset-count').textContent = offset.length;
+            document.getElementById('pos-only-count').textContent = posOnly.length;
+            document.getElementById('maip-only-count').textContent = maipOnly.length;
+
+            let html = '';
+
+            if (posOnly.length > 0) {
+                html += `
+                    <table>
+                        <thead><tr><th colspan="4" style="color:var(--accent-red);">포스에만 있는 내역 (${posOnly.length}건)</th></tr>
+                        <tr><th>일자</th><th>카드사</th><th class="text-right">금액</th><th>사유</th></tr></thead>
+                        <tbody>
+                `;
+                posOnly.slice(0, 20).forEach(item => {
+                    const d = item.포스데이터 || {};
+                    html += `<tr>
+                        <td class="mono">${d.영업일자 ? excelDateToString(d.영업일자) : '-'}</td>
+                        <td>${d.매입사 || '-'}</td>
+                        <td class="text-right mono">${formatNumber(d.승인금액)}</td>
+                        <td class="muted">${item.이유 || '-'}</td>
+                    </tr>`;
+                });
+                if (posOnly.length > 20) html += `<tr><td colspan="4" class="muted text-center">외 ${posOnly.length - 20}건</td></tr>`;
+                html += '</tbody></table>';
+            }
+
+            if (maipOnly.length > 0) {
+                html += `
+                    <table style="margin-top:16px;">
+                        <thead><tr><th colspan="4" style="color:var(--accent-red);">매입에만 있는 내역 (${maipOnly.length}건)</th></tr>
+                        <tr><th>일자</th><th>카드사</th><th class="text-right">금액</th><th class="text-right">수수료</th></tr></thead>
+                        <tbody>
+                `;
+                maipOnly.forEach(item => {
+                    const d = item.매입데이터 || {};
+                    html += `<tr>
+                        <td class="mono">${d.거래일자 || '-'}</td>
+                        <td>${d.카드사 || '-'}</td>
+                        <td class="text-right mono">${formatNumber(d.매입금액)}</td>
+                        <td class="text-right mono red">${formatNumber(d['수수료합계(B)'])}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+            }
+
+            document.getElementById('mismatch-tables').innerHTML = html || '<div style="padding:24px;text-align:center;color:var(--text-muted);">미매칭 내역이 없습니다.</div>';
+        }
+
+        function exportReport() {
+            if (!analysisData) return alert('먼저 데이터를 로드해주세요.');
+            document.getElementById('export-modal').classList.add('show');
+        }
+
+        function closeExportModal(event) {
+            if (!event || event.target === event.currentTarget) {
+                document.getElementById('export-modal').classList.remove('show');
+            }
+        }
+
+        function getFilterDescription() {
+            let desc = [];
+            if (filter10Sun) desc.push('10선협의회');
+            if (dateStart || dateEnd) {
+                const start = dateStart || '시작';
+                const end = dateEnd || '종료';
+                desc.push(`기간: ${start} ~ ${end}`);
+            }
+            const sortOption = document.getElementById('settlement-sort').value;
+            const sortNames = { settlement: '정산액순', sales: '매출액순', items: '품목수순', fee: '수수료순' };
+            desc.push(`정렬: ${sortNames[sortOption] || sortOption}`);
+            return desc.length > 0 ? desc.join(' / ') : '전체';
+        }
+
+        function exportText() {
+            closeExportModal();
+
+            const filterDesc = getFilterDescription();
+            const periodDesc = (dateStart || dateEnd) ? `${dateStart || '시작'} ~ ${dateEnd || '종료'}` : '전체 기간';
+
+            let report = `부산슈퍼 정산 대시보드\n`;
+            report += `생성: ${new Date().toLocaleString()}\n`;
+            report += `필터: ${filterDesc}\n`;
+            report += `${'='.repeat(50)}\n\n`;
+
+            // 요약
+            let 총매출 = 0, 총할인 = 0, 총수수료 = 0, 총정산 = 0;
+            settlementData.forEach(s => {
+                총매출 += s.총매출 || 0;
+                총할인 += s.총할인 || 0;
+                총수수료 += s.카드수수료합계 || 0;
+                총정산 += s.정산예정액 || 0;
+            });
+
+            report += `[요약]\n`;
+            report += `거래처: ${settlementData.length}개\n`;
+            report += `총 매출: ${formatNumber(총매출)}원\n`;
+            report += `총 할인: ${formatNumber(총할인)}원\n`;
+            report += `카드 수수료: ${formatNumber(총수수료)}원\n`;
+            report += `정산 예정: ${formatNumber(총정산)}원\n\n`;
+
+            report += `[거래처별 정산]\n`;
+            report += `${'─'.repeat(50)}\n`;
+            settlementData.forEach((s, i) => {
+                const tag10Sun = s._is10Sun ? ' [10선협의회]' : '';
+                report += `${i + 1}. ${s.거래처}${tag10Sun}\n`;
+                report += `   매출: ${formatNumber(s.총매출)}원 / 할인: ${formatNumber(s.총할인)}원\n`;
+                report += `   카드: ${formatNumber(s.카드매출)}원 / 비카드: ${formatNumber(s.비카드매출)}원\n`;
+                report += `   수수료: ${formatNumber(s.카드수수료합계)}원 → 정산: ${formatNumber(s.정산예정액)}원\n`;
+                report += `   품목: ${s.품목수}건 (카드 ${s.카드품목수} / 비카드 ${s.비카드품목수})\n`;
+                report += `${'─'.repeat(50)}\n`;
+            });
+
+            const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const dateStr = new Date().toISOString().split('T')[0];
+            a.download = `정산리포트_${dateStr}.txt`;
+            a.click();
+        }
+
+        function exportExcel() {
+            // 3.5% 수수료 일괄 적용 여부 확인
+            const uniformFee = document.getElementById('fee-uniform-check').checked;
+
+            closeExportModal();
+
+            if (typeof XLSX === 'undefined') {
+                alert('엑셀 라이브러리를 로드하는 중입니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+
+            // 데이터 복사 (원본 보존)
+            let exportData = settlementData;
+            if (uniformFee) {
+                exportData = JSON.parse(JSON.stringify(settlementData)); // 깊은 복사
+                const uniformRate = 0.035; // 3.5%
+
+                exportData.forEach(s => {
+                    let 새카드수수료합계 = 0;
+                    let 새정산예정액 = 0;
+
+                    if (s.품목별상세) {
+                        s.품목별상세.forEach(item => {
+                            // 모든 품목에 3.5% 수수료 적용 (카드/현금 구분 없이)
+                            const 정산기준액 = item.정산액 + (item.카드수수료 || 0); // 원래 정산기준액 복원
+                            const 새수수료 = Math.trunc(정산기준액 * uniformRate); // 소수점 절사(버림)
+                            item.카드수수료 = 새수수료;
+                            item.카드수수료율 = 3.5;
+                            item.정산액 = 정산기준액 - 새수수료;
+                            새카드수수료합계 += 새수수료;
+                            새정산예정액 += item.정산액;
+                        });
+                    }
+
+                    s.카드수수료합계 = 새카드수수료합계;
+                    s.정산예정액 = 새정산예정액;
+                });
+            }
+
+            const wb = XLSX.utils.book_new();
+            const periodDesc = (dateStart || dateEnd) ? `${dateStart || ''} ~ ${dateEnd || ''}` : '전체 기간';
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            const generatedTime = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 ${today.getHours()}:${String(today.getMinutes()).padStart(2,'0')} 생성`;
+
+            // 공통 폰트: 맑은고딕
+            const fontName = '맑은 고딕';
+
+            // thin 테두리 (모든 셀 기본)
+            const thinBorder = {
+                top: { style: 'thin', color: { rgb: '000000' } },
+                bottom: { style: 'thin', color: { rgb: '000000' } },
+                left: { style: 'thin', color: { rgb: '000000' } },
+                right: { style: 'thin', color: { rgb: '000000' } }
+            };
+
+            // medium 테두리 (외곽선)
+            const mediumBorder = {
+                top: { style: 'medium', color: { rgb: '000000' } },
+                bottom: { style: 'medium', color: { rgb: '000000' } },
+                left: { style: 'medium', color: { rgb: '000000' } },
+                right: { style: 'medium', color: { rgb: '000000' } }
+            };
+
+            // 헬퍼: 열 인덱스를 문자로 변환 (0=A, 1=B, ...)
+            function colToLetter(col) {
+                return String.fromCharCode(65 + col);
+            }
+
+            // 헬퍼: 외곽 테두리 적용 (startRow, endRow, startCol, endCol - 모두 0-indexed)
+            function applyOuterBorder(ws, startRow, endRow, startCol, endCol) {
+                for (let r = startRow; r <= endRow; r++) {
+                    for (let c = startCol; c <= endCol; c++) {
+                        const cellRef = colToLetter(c) + (r + 1);
+                        if (!ws[cellRef]) ws[cellRef] = { v: '', t: 's' };
+                        if (!ws[cellRef].s) ws[cellRef].s = {};
+                        if (!ws[cellRef].s.border) ws[cellRef].s.border = { ...thinBorder };
+
+                        // 상단
+                        if (r === startRow) {
+                            ws[cellRef].s.border.top = { style: 'medium', color: { rgb: '000000' } };
+                        }
+                        // 하단
+                        if (r === endRow) {
+                            ws[cellRef].s.border.bottom = { style: 'medium', color: { rgb: '000000' } };
+                        }
+                        // 좌측
+                        if (c === startCol) {
+                            ws[cellRef].s.border.left = { style: 'medium', color: { rgb: '000000' } };
+                        }
+                        // 우측
+                        if (c === endCol) {
+                            ws[cellRef].s.border.right = { style: 'medium', color: { rgb: '000000' } };
+                        }
+                    }
+                }
+            }
+
+            // ========== 1. 요약 시트 ==========
+            const summaryWs = XLSX.utils.aoa_to_sheet([]);
+            const summaryHeaders = ['순위', '거래처', '10선협의회', '품목수', '카드품목', '비카드품목', '총매출', '총할인', '카드매출', '비카드매출', '수수료', '정산액'];
+            const lastCol = 11; // L열 (0-indexed)
+
+            // Row 1: 타이틀 (A~L 병합, 가운데정렬, 볼드, 24pt, 배경 #FFFF00)
+            const titleSuffix = uniformFee ? ' (수수료 3.5% 일괄적용)' : '';
+            XLSX.utils.sheet_add_aoa(summaryWs, [['부산슈퍼 정산 대시보드' + titleSuffix]], { origin: 'A1' });
+            summaryWs['A1'].s = {
+                font: { name: fontName, bold: true, sz: 24 },
+                fill: { fgColor: { rgb: 'FFFF00' } },
+                alignment: { horizontal: 'center', vertical: 'center' },
+                border: mediumBorder
+            };
+            // 병합된 셀들도 배경색/테두리 적용
+            for (let c = 1; c <= lastCol; c++) {
+                const cellRef = colToLetter(c) + '1';
+                summaryWs[cellRef] = { v: '', t: 's', s: {
+                    font: { name: fontName, bold: true, sz: 24 },
+                    fill: { fgColor: { rgb: 'FFFF00' } },
+                    alignment: { horizontal: 'center', vertical: 'center' },
+                    border: {
+                        top: { style: 'medium', color: { rgb: '000000' } },
+                        bottom: { style: 'medium', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: c === lastCol ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } }
+                    }
+                }};
+            }
+            summaryWs['A1'].s.border.left = { style: 'medium', color: { rgb: '000000' } };
+
+            // Row 2: 기간 (A~L 병합, 오른쪽정렬, 10pt)
+            XLSX.utils.sheet_add_aoa(summaryWs, [[`기간: ${periodDesc}`]], { origin: 'A2' });
+            summaryWs['A2'].s = {
+                font: { name: fontName, sz: 10 },
+                alignment: { horizontal: 'right', vertical: 'center' },
+                border: { top: { style: 'medium', color: { rgb: '000000' } }, bottom: { style: 'thin', color: { rgb: '000000' } }, left: { style: 'medium', color: { rgb: '000000' } }, right: { style: 'thin', color: { rgb: '000000' } } }
+            };
+            for (let c = 1; c <= lastCol; c++) {
+                const cellRef = colToLetter(c) + '2';
+                summaryWs[cellRef] = { v: '', t: 's', s: {
+                    font: { name: fontName, sz: 10 },
+                    alignment: { horizontal: 'right', vertical: 'center' },
+                    border: {
+                        top: { style: 'medium', color: { rgb: '000000' } },
+                        bottom: { style: 'thin', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: c === lastCol ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } }
+                    }
+                }};
+            }
+
+            // Row 3: 생성시각 (A~L 병합, 오른쪽정렬, 10pt)
+            XLSX.utils.sheet_add_aoa(summaryWs, [[generatedTime]], { origin: 'A3' });
+            summaryWs['A3'].s = {
+                font: { name: fontName, sz: 10 },
+                alignment: { horizontal: 'right', vertical: 'center' },
+                border: { top: { style: 'thin', color: { rgb: '000000' } }, bottom: { style: 'medium', color: { rgb: '000000' } }, left: { style: 'medium', color: { rgb: '000000' } }, right: { style: 'thin', color: { rgb: '000000' } } }
+            };
+            for (let c = 1; c <= lastCol; c++) {
+                const cellRef = colToLetter(c) + '3';
+                summaryWs[cellRef] = { v: '', t: 's', s: {
+                    font: { name: fontName, sz: 10 },
+                    alignment: { horizontal: 'right', vertical: 'center' },
+                    border: {
+                        top: { style: 'thin', color: { rgb: '000000' } },
+                        bottom: { style: 'medium', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: c === lastCol ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } }
+                    }
+                }};
+            }
+
+            // Row 4: 헤더 (가운데정렬, 볼드, 12pt, 배경 #FFFF00)
+            XLSX.utils.sheet_add_aoa(summaryWs, [summaryHeaders], { origin: 'A4' });
+            summaryHeaders.forEach((_, idx) => {
+                const cellRef = colToLetter(idx) + '4';
+                if (summaryWs[cellRef]) {
+                    summaryWs[cellRef].s = {
+                        font: { name: fontName, bold: true, sz: 12 },
+                        fill: { fgColor: { rgb: 'FFFF00' } },
+                        alignment: { horizontal: 'center', vertical: 'center' },
+                        border: {
+                            top: { style: 'medium', color: { rgb: '000000' } },
+                            bottom: { style: 'thin', color: { rgb: '000000' } },
+                            left: idx === 0 ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } },
+                            right: idx === lastCol ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } }
+                        }
+                    };
+                }
+            });
+
+            // Row 5+: 데이터 (가운데정렬, 12pt)
+            const lastDataRowSummary = 4 + exportData.length;
+            exportData.forEach((s, i) => {
+                const row = i + 5;
+                const isLastRow = (row === lastDataRowSummary);
+                const rowData = [
+                    i + 1, s.거래처, s._is10Sun ? 'O' : '',
+                    s.품목수 || 0, s.카드품목수 || 0, s.비카드품목수 || 0,
+                    s.총매출 || 0, s.총할인 || 0, s.카드매출 || 0, s.비카드매출 || 0,
+                    s.카드수수료합계 || 0, s.정산예정액 || 0
+                ];
+                XLSX.utils.sheet_add_aoa(summaryWs, [rowData], { origin: `A${row}` });
+
+                summaryHeaders.forEach((_, idx) => {
+                    const cellRef = colToLetter(idx) + row;
+                    const cell = summaryWs[cellRef];
+                    if (cell) {
+                        cell.s = {
+                            font: { name: fontName, sz: 12 },
+                            alignment: { horizontal: 'center', vertical: 'center' },
+                            border: {
+                                top: { style: 'thin', color: { rgb: '000000' } },
+                                bottom: isLastRow ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } },
+                                left: idx === 0 ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } },
+                                right: idx === lastCol ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } }
+                            }
+                        };
+                        // 숫자 포맷
+                        if (idx >= 3) cell.z = '#,##0';
+                    }
+                });
+            });
+
+            // 병합 설정
+            summaryWs['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: lastCol } },  // Row 1
+                { s: { r: 1, c: 0 }, e: { r: 1, c: lastCol } },  // Row 2
+                { s: { r: 2, c: 0 }, e: { r: 2, c: lastCol } }   // Row 3
+            ];
+
+            summaryWs['!cols'] = [
+                { wch: 6 }, { wch: 18 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 10 },
+                { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 12 }
+            ];
+            summaryWs['!rows'] = [{ hpt: 36 }, { hpt: 20 }, { hpt: 20 }, { hpt: 24 }];
+
+            XLSX.utils.book_append_sheet(wb, summaryWs, '요약');
+
+            // ========== 2. 상세 시트 ==========
+            const detailWs = XLSX.utils.aoa_to_sheet([]);
+            const detailHeaders = ['업체명', '결제일자', '정산일자', '카드/현금', '카드사', '수수료율',
+                '상품명', '상품코드', '바코드', '단가', '수량', '판매대금',
+                '할인여부(업체)', '할인율(업체)', '할인액(업체)', '할인여부(회사)', '할인액(회사)',
+                '수수료', '정산액'];
+            const detailLastCol = 18; // S열 (0-indexed)
+
+            // Row 1: 타이틀 (A~P 병합, 가운데정렬, 볼드, 24pt, 배경 #FFFF00)
+            XLSX.utils.sheet_add_aoa(detailWs, [['부산슈퍼 정산 대시보드 - 상세' + titleSuffix]], { origin: 'A1' });
+            detailWs['A1'].s = {
+                font: { name: fontName, bold: true, sz: 24 },
+                fill: { fgColor: { rgb: 'FFFF00' } },
+                alignment: { horizontal: 'center', vertical: 'center' },
+                border: mediumBorder
+            };
+            for (let c = 1; c <= detailLastCol; c++) {
+                const cellRef = colToLetter(c) + '1';
+                detailWs[cellRef] = { v: '', t: 's', s: {
+                    font: { name: fontName, bold: true, sz: 24 },
+                    fill: { fgColor: { rgb: 'FFFF00' } },
+                    alignment: { horizontal: 'center', vertical: 'center' },
+                    border: {
+                        top: { style: 'medium', color: { rgb: '000000' } },
+                        bottom: { style: 'medium', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: c === detailLastCol ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } }
+                    }
+                }};
+            }
+            detailWs['A1'].s.border.left = { style: 'medium', color: { rgb: '000000' } };
+
+            // Row 2: 기간 (A~P 병합, 오른쪽정렬, 10pt)
+            XLSX.utils.sheet_add_aoa(detailWs, [[`기간: ${periodDesc}  |  ${generatedTime}`]], { origin: 'A2' });
+            detailWs['A2'].s = {
+                font: { name: fontName, sz: 10 },
+                alignment: { horizontal: 'right', vertical: 'center' },
+                border: { top: { style: 'medium', color: { rgb: '000000' } }, bottom: { style: 'medium', color: { rgb: '000000' } }, left: { style: 'medium', color: { rgb: '000000' } }, right: { style: 'thin', color: { rgb: '000000' } } }
+            };
+            for (let c = 1; c <= detailLastCol; c++) {
+                const cellRef = colToLetter(c) + '2';
+                detailWs[cellRef] = { v: '', t: 's', s: {
+                    font: { name: fontName, sz: 10 },
+                    alignment: { horizontal: 'right', vertical: 'center' },
+                    border: {
+                        top: { style: 'medium', color: { rgb: '000000' } },
+                        bottom: { style: 'medium', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: c === detailLastCol ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } }
+                    }
+                }};
+            }
+
+            // Row 3: 헤더 (가운데정렬, 볼드, 12pt, 배경 #FFFF00)
+            XLSX.utils.sheet_add_aoa(detailWs, [detailHeaders], { origin: 'A3' });
+            detailHeaders.forEach((_, idx) => {
+                const cellRef = colToLetter(idx) + '3';
+                if (detailWs[cellRef]) {
+                    detailWs[cellRef].s = {
+                        font: { name: fontName, bold: true, sz: 12 },
+                        fill: { fgColor: { rgb: 'FFFF00' } },
+                        alignment: { horizontal: 'center', vertical: 'center' },
+                        border: {
+                            top: { style: 'medium', color: { rgb: '000000' } },
+                            bottom: { style: 'thin', color: { rgb: '000000' } },
+                            left: idx === 0 ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } },
+                            right: idx === detailLastCol ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } }
+                        }
+                    };
+                }
+            });
+
+            // Row 4+: 데이터
+            const detailMerges = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: detailLastCol } },  // Row 1 타이틀
+                { s: { r: 1, c: 0 }, e: { r: 1, c: detailLastCol } }   // Row 2 기간
+            ];
+            let currentRow = 4; // 0-indexed = row 4 in Excel
+
+            // 전체 데이터 행 수 계산
+            let totalDetailRows = 0;
+            exportData.forEach(s => {
+                totalDetailRows += (s.품목별상세 || []).length;
+            });
+            const lastDataRowDetail = 3 + totalDetailRows; // 0-indexed
+
+            exportData.forEach((s) => {
+                const items = s.품목별상세 || [];
+                if (items.length === 0) return;
+
+                const startRow = currentRow;
+
+                items.forEach((item, itemIdx) => {
+                    const excelRow = currentRow + 1; // 1-indexed for Excel
+                    const isLastRow = (currentRow === lastDataRowDetail);
+
+                    // 업체부담 vs 회사부담 분리
+                    const is업체부담 = item.부담주체 === '거래처';
+                    const is회사부담 = item.부담주체 === '판매자';
+
+                    const rowData = [
+                        s.거래처,
+                        item.결제일자 || '',
+                        item.정산일자 || '',
+                        item.카드여부 ? '카드' : '현금',
+                        item.카드사 || '',
+                        item.카드수수료율 > 0 ? item.카드수수료율 + '%' : '',
+                        item.상품명 || '',
+                        item.상품코드 || '',
+                        item.상품바코드 || '',
+                        item.판매단가 || 0,
+                        item.수량 || 1,
+                        item.총매출액 || 0,
+                        // 업체부담 할인
+                        (is업체부담 && item.할인여부) ? 'Y' : '',
+                        (is업체부담 && item.할인율 > 0) ? item.할인율 + '%' : '',
+                        (is업체부담 && item.할인액 > 0) ? item.할인액 : '',
+                        // 회사부담 할인
+                        (is회사부담 && item.할인여부) ? 'Y' : '',
+                        (is회사부담 && item.할인액 > 0) ? item.할인액 : '',
+                        item.카드수수료 || 0,
+                        item.정산액 || 0
+                    ];
+                    XLSX.utils.sheet_add_aoa(detailWs, [rowData], { origin: `A${excelRow}` });
+
+                    // 스타일 적용 (가운데정렬, 12pt)
+                    detailHeaders.forEach((_, idx) => {
+                        const cellRef = colToLetter(idx) + excelRow;
+                        const cell = detailWs[cellRef];
+                        if (cell) {
+                            cell.s = {
+                                font: { name: fontName, sz: 12 },
+                                alignment: { horizontal: 'center', vertical: 'center' },
+                                border: {
+                                    top: { style: 'thin', color: { rgb: '000000' } },
+                                    bottom: isLastRow ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } },
+                                    left: idx === 0 ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } },
+                                    right: idx === detailLastCol ? { style: 'medium', color: { rgb: '000000' } } : { style: 'thin', color: { rgb: '000000' } }
+                                }
+                            };
+                            // 숫자 포맷 (단가, 수량, 판매대금, 할인액(업체), 할인액(회사), 수수료, 정산액)
+                            if ([9, 10, 11, 14, 16, 17, 18].includes(idx)) cell.z = '#,##0';
+                        }
+                    });
+
+                    currentRow++;
+                });
+
+                // 업체명 병합 (A열)
+                if (items.length > 1) {
+                    detailMerges.push({
+                        s: { r: startRow, c: 0 },
+                        e: { r: currentRow - 1, c: 0 }
+                    });
+                }
+            });
+
+            detailWs['!merges'] = detailMerges;
+            detailWs['!cols'] = [
+                { wch: 14 }, { wch: 11 }, { wch: 11 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
+                { wch: 22 }, { wch: 10 }, { wch: 14 }, { wch: 8 }, { wch: 5 }, { wch: 10 },
+                { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+                { wch: 10 }, { wch: 12 }
+            ];
+            detailWs['!rows'] = [{ hpt: 36 }, { hpt: 20 }, { hpt: 24 }];
+
+            XLSX.utils.book_append_sheet(wb, detailWs, '상세');
+
+            // 파일 다운로드
+            const feeSuffix = uniformFee ? '_수수료3.5%일괄' : '';
+            XLSX.writeFile(wb, `정산리포트_${dateStr}${feeSuffix}.xlsx`);
+        }
+
+        // 정산용 엑셀 다운로드 (샘플 파일 형식)
+        function exportExcelSettlement() {
+            closeExportModal();
+
+            if (typeof XLSX === 'undefined') {
+                alert('엑셀 라이브러리를 로드하는 중입니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+
+            // 3.5% 수수료 일괄 적용
+            let exportData = JSON.parse(JSON.stringify(settlementData));
+            const uniformRate = 0.035;
+
+            exportData.forEach(s => {
+                let 새카드수수료합계 = 0;
+                let 새정산예정액 = 0;
+
+                if (s.품목별상세) {
+                    s.품목별상세.forEach(item => {
+                        const 정산기준액 = item.정산액 + (item.카드수수료 || 0);
+                        const 새수수료 = Math.trunc(정산기준액 * uniformRate);
+                        item.카드수수료 = 새수수료;
+                        item.정산액 = 정산기준액 - 새수수료;
+                        새카드수수료합계 += 새수수료;
+                        새정산예정액 += item.정산액;
+                    });
+                }
+                s.카드수수료합계 = 새카드수수료합계;
+                s.정산예정액 = 새정산예정액;
+            });
+
+            const wb = XLSX.utils.book_new();
+            const periodDesc = (dateStart || dateEnd) ? `${dateStart || ''} ~ ${dateEnd || ''}` : '전체 기간';
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+
+            const fontName = '맑은 고딕';
+            const thinBorder = {
+                top: { style: 'thin', color: { rgb: '000000' } },
+                bottom: { style: 'thin', color: { rgb: '000000' } },
+                left: { style: 'thin', color: { rgb: '000000' } },
+                right: { style: 'thin', color: { rgb: '000000' } }
+            };
+
+            function colToLetter(col) {
+                if (col < 26) return String.fromCharCode(65 + col);
+                return String.fromCharCode(65 + Math.floor(col / 26) - 1) + String.fromCharCode(65 + (col % 26));
+            }
+
+            // ========== 1. 요약 시트 ==========
+            const summaryWs = XLSX.utils.aoa_to_sheet([]);
+            const summaryHeaders = ['#', '거래처', '10선', '품목수', '총매출', '총할인', '수수료', '정산액'];
+            const summaryLastCol = 7;
+
+            // 헤더 추가
+            XLSX.utils.sheet_add_aoa(summaryWs, [summaryHeaders], { origin: 'A1' });
+            summaryHeaders.forEach((_, idx) => {
+                const cellRef = colToLetter(idx) + '1';
+                if (summaryWs[cellRef]) {
+                    summaryWs[cellRef].s = {
+                        font: { name: fontName, bold: true, sz: 11 },
+                        fill: { fgColor: { rgb: 'FFFF00' } },
+                        alignment: { horizontal: 'center', vertical: 'center' },
+                        border: thinBorder
+                    };
+                }
+            });
+
+            // 데이터 추가
+            exportData.forEach((s, i) => {
+                const row = i + 2;
+                const rowData = [
+                    i + 1, s.거래처, s._is10Sun ? 'O' : '',
+                    s.품목수 || 0, s.총매출 || 0, s.총할인 || 0,
+                    s.카드수수료합계 || 0, s.정산예정액 || 0
+                ];
+                XLSX.utils.sheet_add_aoa(summaryWs, [rowData], { origin: `A${row}` });
+
+                summaryHeaders.forEach((_, idx) => {
+                    const cellRef = colToLetter(idx) + row;
+                    const cell = summaryWs[cellRef];
+                    if (cell) {
+                        cell.s = {
+                            font: { name: fontName, sz: 11 },
+                            alignment: { horizontal: 'center', vertical: 'center' },
+                            border: thinBorder
+                        };
+                        if (idx >= 3) cell.z = '#,##0';
+                    }
+                });
+            });
+
+            summaryWs['!cols'] = [
+                { wch: 5 }, { wch: 16 }, { wch: 5 }, { wch: 8 },
+                { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }
+            ];
+            XLSX.utils.book_append_sheet(wb, summaryWs, '요약');
+
+            // ========== 2. 상세 시트 ==========
+            const detailWs = XLSX.utils.aoa_to_sheet([]);
+            const detailHeaders = ['업체명', '결제일자', '상품명', '상품코드', '바코드', '단가', '수량', '판매대금',
+                '할인여부(업체부담)', '할인율(업체부담)', '할인액(업체부담)',
+                '할인여부(회사부담)', '할인액(회사부담)', '카드수수료(3.5%)', '정산액'];
+            const detailLastCol = 14;
+
+            // 헤더 추가
+            XLSX.utils.sheet_add_aoa(detailWs, [detailHeaders], { origin: 'A1' });
+            detailHeaders.forEach((_, idx) => {
+                const cellRef = colToLetter(idx) + '1';
+                if (detailWs[cellRef]) {
+                    detailWs[cellRef].s = {
+                        font: { name: fontName, bold: true, sz: 11 },
+                        fill: { fgColor: { rgb: 'FFFF00' } },
+                        alignment: { horizontal: 'center', vertical: 'center' },
+                        border: thinBorder
+                    };
+                }
+            });
+
+            // 데이터 추가
+            let currentRow = 2;
+            const detailMerges = [];
+
+            exportData.forEach((s) => {
+                const items = s.품목별상세 || [];
+                if (items.length === 0) return;
+
+                const startRow = currentRow;
+
+                items.forEach((item) => {
+                    const is업체부담 = item.부담주체 === '거래처';
+                    const is회사부담 = item.부담주체 === '판매자';
+
+                    const rowData = [
+                        s.거래처,
+                        item.결제일자 || '',
+                        item.상품명 || '',
+                        item.상품코드 || '',
+                        item.상품바코드 || '',
+                        item.판매단가 || 0,
+                        item.수량 || 1,
+                        item.총매출액 || 0,
+                        (is업체부담 && item.할인여부) ? 'Y' : '',
+                        (is업체부담 && item.할인율 > 0) ? item.할인율 + '%' : '',
+                        (is업체부담 && item.할인액 > 0) ? item.할인액 : '',
+                        (is회사부담 && item.할인여부) ? 'Y' : '',
+                        (is회사부담 && item.할인액 > 0) ? item.할인액 : '',
+                        item.카드수수료 || 0,
+                        item.정산액 || 0
+                    ];
+                    XLSX.utils.sheet_add_aoa(detailWs, [rowData], { origin: `A${currentRow}` });
+
+                    detailHeaders.forEach((_, idx) => {
+                        const cellRef = colToLetter(idx) + currentRow;
+                        const cell = detailWs[cellRef];
+                        if (cell) {
+                            cell.s = {
+                                font: { name: fontName, sz: 11 },
+                                alignment: { horizontal: 'center', vertical: 'center' },
+                                border: thinBorder
+                            };
+                            if ([5, 6, 7, 10, 12, 13, 14].includes(idx)) cell.z = '#,##0';
+                        }
+                    });
+
+                    currentRow++;
+                });
+
+                if (items.length > 1) {
+                    detailMerges.push({
+                        s: { r: startRow - 1, c: 0 },
+                        e: { r: currentRow - 2, c: 0 }
+                    });
+                }
+            });
+
+            detailWs['!merges'] = detailMerges;
+            detailWs['!cols'] = [
+                { wch: 14 }, { wch: 11 }, { wch: 22 }, { wch: 10 }, { wch: 14 },
+                { wch: 8 }, { wch: 5 }, { wch: 10 },
+                { wch: 14 }, { wch: 14 }, { wch: 12 },
+                { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 12 }
+            ];
+            XLSX.utils.book_append_sheet(wb, detailWs, '상세');
+
+            // 파일 다운로드
+            XLSX.writeFile(wb, `부산슈퍼_정산_${dateStr}_POS기준.xlsx`);
+        }
+    </script>
+</body>
+</html>
