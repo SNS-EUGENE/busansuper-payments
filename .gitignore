@@ -14,11 +14,21 @@ recheck_rows.js
 remaining_analysis.js
 test_*.js
 
-# Data files (민감 정보 포함)
-*.xlsx
+# Data files (불필요한 파일 제외)
 *.csv
 *.zip
 *.json
+
+# 불필요한 엑셀 파일 제외
+ㅁ.xlsx
+정산리포트_*.xlsx
+★*.xlsx
+
+# 필요한 엑셀 파일은 포함
+# - 여신_매입내역.xlsx
+# - 포스_카드결제내역.xlsx
+# - 부산슈퍼 상품목록.xlsx
+# - *영수증별매출상세현황.xlsx
 
 # Misc
 nul
